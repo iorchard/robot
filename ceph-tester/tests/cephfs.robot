@@ -40,7 +40,7 @@ MON HA
     ...        Create a directory and a file and read a file in cephfs.\n
     ...        Start ceph-mon service in selected mon host.\n
     ...        Check ceph health status.\n
-    [Tags]    mon-ha
+    [Tags]    cephfs    mon-ha
     ${mtpoint} =    Get CephFS Mountpoint
     Disk IO On CephFS        ${mtpoint}
 
@@ -80,7 +80,7 @@ OSD Replication Resilience
     ...        Check ceph health status.\n
     ...        Create a directory and a file and read a file in cephfs.\n
     ...        Show the output of ceph osd df.\n
-    [Tags]    osd-ha
+    [Tags]    cephfs    osd-ha
     ${mtpoint} =    Get CephFS Mountpoint
     Disk IO On CephFS        ${mtpoint}
 
@@ -127,23 +127,6 @@ OSD Replication Resilience
     Run Keyword If    ${result.rc} == 0    
     ...        Log        ${result.stdout}    console=True
 
-OSD Scale Up
-    [Documentation]        Validate objects are rebalanced when osd4 is added.
-    ...        Add osd4 into the cluster.
-    ...        Check objects are moving to osd4 osds.
-    [Tags]    osd234
-    ${out} =    Login And Run Command On Remote System    ${OSDS}[0]
-    ...        ${USER}        ${SSHKEY}
-    ...        sudo systemctl status ceph-mon@mon1
-    Log To Console        ${out}
-    No Operation
-
-OSD Scale Down
-    [Documentation]        Validate objects are rebalanced when osd4 is down.
-    ...        Shutdown osd4.
-    [Tags]    osd
-    No Operation
-
 MDS HA
     [Documentation]        Validate MDS HA.
     ...     Get active and standby mds hosts.
@@ -155,7 +138,7 @@ MDS HA
     ...     Start the stopped mds service.
     ...     Create a directory and a file and read a file in cephfs.\n
     ...     Show the output of ceph mds stat.\n
-    [Tags]    mds-ha
+    [Tags]    cephfs    mds-ha
     ${mtpoint} =    Get CephFS Mountpoint
     Disk IO On CephFS        ${mtpoint}
 
@@ -229,6 +212,7 @@ Select OSD To Down
         ${total} =    Evaluate    ${total} + ${tmpnum}
     END
     ${num} =    Evaluate    int(${total} / 2 - 1)
+    Should Be True      ${num} > 1  The number to down should be at leat 1.
     [Return]    ${total}    ${num}
 
 Select Mon To Down
@@ -263,4 +247,3 @@ Disk IO On CephFS
     OperatingSystem.File Should Not Exist    ${mtpoint}/foo.txt
     OperatingSystem.Remove Directory    ${mtpoint}/foo
     OperatingSystem.Directory Should Not Exist    ${mtpoint}/foo
-
